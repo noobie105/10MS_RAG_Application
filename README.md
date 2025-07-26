@@ -173,7 +173,6 @@ However, it failed in the following case due to pronoun ambiguity:
 **Relevance**: Most results are relevant (5/6 queries match, cosine similarity 0.764–0.824). Ambiguous queries fail due to unresolved pronouns.
 
 **Improvements**:
-- **Chunking**: Use overlapping chunks for better context.
 - **Embedding**: Fine-tune the model on Bengali literature.
 - **Corpus**: Expand the document with related texts.
-- **Pronoun Resolution**: Store entity metadata, refine prompts to prioritize recent history, or request clarification for ambiguous pronouns.
+- **Pronoun Resolution**: Store entity metadata, or request clarification for ambiguous pronouns.
