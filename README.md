@@ -156,7 +156,7 @@ I used the Gemini API (`gemini-2.0-flash`) with `pdf2image` to extract text from
 
 - **Query**: অনুপমের ভাষায় সুপরুষ কাকে বলা হয়েছে?  
   **Actual Answer**: অনুপমের ভাষায় সুপুরুষ শম্ভুনাথকে বলা হয়েছে।  
-  **Expected Answer**: শম্ভুনাথকে  
+  **Expected Answer**: শম্ভুনাথকে 
 - **Query**: তিনি কল্যাণীর সম্পর্কে কে হন?  
   **Actual Answer**: তিনি কল্যাণীর পিতা হন।  
   **Expected Answer**: পিতা  
