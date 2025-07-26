@@ -116,3 +116,64 @@ The `evaluate_rag` function computed these metrics for each sample query by retr
 | 'রসনচৌকি' শব্দের অর্থ কি? | শানাই ঢোল ও কাঁসি এই তিনটি বাদ্যযন্ত্রের সৃষ্ট ঐকতানবাদন | 'রসনচৌকি' শব্দের অর্থ হলো শানাই, ঢোল ও কাঁসি এই তিনটি বাদ্যযন্ত্রের সৃষ্ট ঐকতানবাদন। | SUPPORTED | 0.798 |
 | Who is the main character in the story? | অনুপম | The main character in the story "অপরিচিতা" is অনুপম. | SUPPORTED | 0.795 |
 | What is the name of Anupam's friend? | হরিশ | Anupam's friend is named Harish. | SUPPORTED | 0.764 |
+
+# Answers to the Submission Question
+
+## What method or library did you use to extract the text, and why? Did you face any formatting challenges with the PDF content?
+
+I used the Gemini API (`gemini-2.0-flash`) with `pdf2image` to extract text from "HSC26-Bangla1st-Paper.pdf" page-by-page, chosen for its superior Bengali script recognition and ability to handle scanned PDFs. Text was cleaned with regex to preserve Bengali characters and saved to a `.docx` file using `python-docx` for RAG compatibility.
+
+**Challenges and Failures**: Initial attempts with `pdfplumber` and `pytesseract` produced garbled text due to the PDF's scanned or non-standard font content. A second attempt with enhanced OCR settings failed similarly. Using Gemini for whole-PDF extraction improved results but was incomplete. Page-by-page extraction missed some pages due to API limits.
+
+**Final Success**: The final code implemented retries (three attempts per page) and high-resolution (300 DPI) image conversion, with a 5-second delay to avoid rate limits. This approach extracted most content accurately, overcoming previous failures.
+
+
+## 1. Chunking Strategy
+**Strategy**: Sentence-based chunking using `indic-nlp-library` for Bengali and `nltk` for English.
+
+**Why Effective**: Sentences preserve semantic units, balancing granularity to avoid irrelevant details (paragraphs) or fragmented meaning (character limits). Bengali-specific tokenization ensures accurate splitting.
+
+## 2. Embedding Model
+**Model**: `intfloat/multilingual-e5-large`.
+
+**Why Chosen**: Supports Bengali and English with 1024-dimensional embeddings, capturing nuanced semantics. Pretrained efficiency eliminates fine-tuning needs.
+
+**How It Captures Meaning**: This transformer-based model uses attention to encode contextual word relationships, aligning similar meanings across languages in a shared vector space, ideal for multilingual retrieval.
+
+## 3. Query Comparison and Storage
+**Method**: Cosine similarity in Pinecone vector database, retrieving the top 10 chunks.
+
+**Why Chosen**: Cosine similarity measures semantic alignment, robust for high-dimensional embeddings. Pinecone provides scalable, managed storage, supporting multilingual embeddings.
+
+## 4. Meaningful Comparison
+**Ensuring Comparison**:
+- Normalize queries and documents for consistency.
+- Use `multilingual-e5-large` for a shared vector space.
+- Retrieve the top 10 chunks for diverse context.
+- Prompt `gpt-4o` to resolve pronouns using conversation history.
+
+**Vague Queries**: The system generally performs well, as shown below:
+
+- **Query**: অনুপমের ভাষায় সুপরুষ কাকে বলা হয়েছে?  
+  **Actual Answer**: অনুপমের ভাষায় সুপুরুষ শম্ভুনাথকে বলা হয়েছে।  
+  **Expected Answer**: শম্ভুনাথকে  
+- **Query**: তিনি কল্যাণীর সম্পর্কে কে হন?  
+  **Actual Answer**: তিনি কল্যাণীর পিতা হন।  
+  **Expected Answer**: পিতা  
+
+However, it failed in the following case due to pronoun ambiguity:
+
+- **Query**: তিনি কি করেন?  
+  **Actual Answer**: তিনি ওকালতি করে প্রচুর টাকা রোজগার করেছেন, কিন্তু ভোগ করার সময় পাননি।  
+  **Expected Answer**: তিনি ডাক্তারি করেন।  
+
+**Conclusion**: Ambiguous queries (e.g., "তিনি কি করেন?") may retrieve irrelevant chunks, leading to incorrect answers (e.g., lawyer instead of doctor). **Mitigation**: Add entity metadata, enhance prompts to clarify pronouns, or rephrase queries using conversation history.
+
+## 5. Result Relevance
+**Relevance**: Most results are relevant (5/6 queries match, cosine similarity 0.764–0.824). Ambiguous queries fail due to unresolved pronouns.
+
+**Improvements**:
+- **Chunking**: Use overlapping chunks for better context.
+- **Embedding**: Fine-tune the model on Bengali literature.
+- **Corpus**: Expand the document with related texts.
+- **Pronoun Resolution**: Store entity metadata, refine prompts to prioritize recent history, or request clarification for ambiguous pronouns.
